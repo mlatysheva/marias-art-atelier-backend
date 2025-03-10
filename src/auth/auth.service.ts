@@ -16,10 +16,15 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(user: User, response: Response) {
+  login(user: User, response: Response) {
     const expires = new Date();
+    const jwtExpiration =
+      this.configService.get<string>('JWT_EXPIRATION') || '10h';
+    const expirationMs = ms(jwtExpiration as unknown as ms.StringValue);
 
-    expires.setMilliseconds(expires.getMilliseconds() + ms('10h'));
+    expires.setMilliseconds(
+      parseInt(expires.getMilliseconds() + ms(expirationMs)),
+    );
 
     const tokenPayload: TokenPayload = {
       userId: user.id,
