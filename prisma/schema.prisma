@@ -16,7 +16,9 @@ model User {
 
 model Painting {
   id          String   @id @default(cuid())
-  name        String
+  title       String
+  artist      String
+  year        Int
   description String
   dimensions  Int[]
   materials   String[]
