@@ -32,7 +32,7 @@ export class AuthService {
     const token = this.jwtService.sign(tokenPayload);
 
     response.cookie('Authentication', token, {
-      secure: true,
+      secure: this.configService.get('NODE_ENV') === 'production',
       httpOnly: true,
       expires,
     });
