@@ -17,14 +17,11 @@ export class AuthService {
   ) {}
 
   login(user: User, response: Response) {
-    const expires = new Date();
+    // Calculate the expiration time for the JWT according to the JWT_EXPIRATION environment variable
     const jwtExpiration =
       this.configService.get<string>('JWT_EXPIRATION') || '10h';
     const expirationMs = ms(jwtExpiration as unknown as ms.StringValue);
-
-    expires.setMilliseconds(
-      parseInt(expires.getMilliseconds() + ms(expirationMs)),
-    );
+    const expires = new Date(Date.now() + expirationMs);
 
     const tokenPayload: TokenPayload = {
       userId: user.id,
@@ -32,6 +29,7 @@ export class AuthService {
     const token = this.jwtService.sign(tokenPayload);
 
     response.cookie('Authentication', token, {
+      // `secure` should be set to true in production, in development it is set to false to allow Postman requests
       secure: this.configService.get('NODE_ENV') === 'production',
       httpOnly: true,
       expires,
