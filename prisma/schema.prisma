@@ -23,6 +23,7 @@ model Painting {
   artist      String
   year        Int
   description String
+  tags        String[]
   dimensions  Int[]
   materials   String[]
   price       Int

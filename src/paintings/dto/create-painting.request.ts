@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 export class CreatePaintingRequest {
   @IsString()
@@ -11,6 +11,9 @@ export class CreatePaintingRequest {
 
   @IsString()
   description: string;
+
+  @IsString()
+  tags: string;
 
   @IsNumber()
   @IsNotEmpty()
