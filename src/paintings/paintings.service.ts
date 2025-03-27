@@ -24,4 +24,8 @@ export class PaintingsService {
       },
     });
   }
+
+  async getPaintings() {
+    return this.prismaService.painting.findMany();
+  }
 }
