@@ -7,6 +7,7 @@ import {
   ParseFilePipe,
   Post,
   UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -15,7 +16,7 @@ import { CreatePaintingRequest } from './dto/create-painting.request';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { TokenPayload } from '../auth/token-payload.interface';
 import { PaintingsService } from './paintings.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'node:path';
 
@@ -32,33 +33,33 @@ export class PaintingsController {
     return this.paintingsService.createPainting(body, user.userId);
   }
 
-  @Post(':paintingId/image')
+  @Post(':paintingId/images')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FileInterceptor('image', {
+    FilesInterceptor('image', 10, {
       storage: diskStorage({
         destination: 'public/paintings',
         filename: (req, file, callback) => {
           callback(
             null,
-            `${req.params.paintingId}${extname(file.originalname)}`,
+            `${req.params.paintingId}-${Date.now()}${extname(file.originalname)}`,
           );
         },
       }),
     }),
   )
   uploadPaintingImage(
-    @UploadedFile(
+    @UploadedFiles(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 50000 }),
+          new MaxFileSizeValidator({ maxSize: 500000 }),
           new FileTypeValidator({
-            fileType: 'image/jpeg',
+            fileType: 'image/jpeg|image/png|image/jpg',
           }),
         ],
       }),
     )
-    _file: Express.Multer.File,
+    files: Express.Multer.File[],
   ) {}
 
   @Get()
