@@ -6,7 +6,6 @@ import {
   MaxFileSizeValidator,
   ParseFilePipe,
   Post,
-  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -40,15 +39,21 @@ export class PaintingsController {
       storage: diskStorage({
         destination: 'public/paintings',
         filename: (req, file, callback) => {
-          callback(
-            null,
-            `${req.params.paintingId}-${Date.now()}${extname(file.originalname)}`,
-          );
+          // Decode the filename from latin1 to utf8, relevant for Cyrillic characters
+          const buffer = Buffer.from(file.originalname, 'latin1');
+          const decodedName = buffer.toString('utf8');
+
+          const ext = extname(decodedName);
+          const name = decodedName.replace(ext, '');
+
+          const finalName = `${req.params.paintingId}-${name}${ext}`;
+
+          callback(null, finalName);
         },
       }),
     }),
   )
-  uploadPaintingImage(
+  uploadPaintingImages(
     @UploadedFiles(
       new ParseFilePipe({
         validators: [
