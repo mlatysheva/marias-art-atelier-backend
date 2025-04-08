@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePaintingRequest } from './dto/create-painting.request';
 import { PrismaService } from '../prisma/prisma.service';
+import { promises as fs } from 'fs';
+import path, { join } from 'path';
 
 @Injectable()
 export class PaintingsService {
@@ -26,6 +28,34 @@ export class PaintingsService {
   }
 
   async getPaintings() {
-    return this.prismaService.painting.findMany();
+    const paintings = this.prismaService.painting.findMany();
+    return Promise.all(
+      (await paintings).map(async (painting) => {
+        // Get the array of image file names
+        const images = await this.getPaintingImages(painting.id);
+        return {
+          ...painting,
+          images,
+          imageExists: images.length > 0,
+        };
+      }),
+    );
+  }
+
+  private async getPaintingImages(paintingId: string): Promise<string[]> {
+    const folderPath = path.join(
+      __dirname,
+      '../..',
+      'public/paintings',
+      paintingId,
+    );
+
+    try {
+      const files = await fs.readdir(folderPath);
+      return files.filter((file) => /\.(jpe?g|png)$/i.test(file));
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
   }
 }

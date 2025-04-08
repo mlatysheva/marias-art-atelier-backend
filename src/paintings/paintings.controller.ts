@@ -18,6 +18,8 @@ import { PaintingsService } from './paintings.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'node:path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Controller('paintings')
 export class PaintingsController {
@@ -37,7 +39,15 @@ export class PaintingsController {
   @UseInterceptors(
     FilesInterceptor('image', 10, {
       storage: diskStorage({
-        destination: 'public/paintings',
+        destination: (req, file, cb) => {
+          const paintingId = req.params.paintingId;
+          const uploadPath = path.join('public', 'paintings', paintingId);
+
+          // Create the folder for the images if it doesn't exist
+          fs.mkdirSync(uploadPath, { recursive: true });
+
+          cb(null, uploadPath);
+        },
         filename: (req, file, callback) => {
           // Decode the filename from latin1 to utf8, relevant for Cyrillic characters
           const buffer = Buffer.from(file.originalname, 'latin1');
@@ -46,7 +56,7 @@ export class PaintingsController {
           const ext = extname(decodedName);
           const name = decodedName.replace(ext, '');
 
-          const finalName = `${req.params.paintingId}-${name}${ext}`;
+          const finalName = `${name}${ext}`;
 
           callback(null, finalName);
         },
