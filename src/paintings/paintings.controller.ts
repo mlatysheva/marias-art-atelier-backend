@@ -4,6 +4,7 @@ import {
   FileTypeValidator,
   Get,
   MaxFileSizeValidator,
+  Param,
   ParseFilePipe,
   Post,
   UploadedFiles,
@@ -39,16 +40,21 @@ export class PaintingsController {
   @UseInterceptors(
     FilesInterceptor('image', 10, {
       storage: diskStorage({
-        destination: (req, file, cb) => {
+        destination: (req, _, cb) => {
           const paintingId = req.params.paintingId;
-          const uploadPath = path.join('public', 'paintings', paintingId);
+          const uploadPath = path.join(
+            'public',
+            'images',
+            'paintings',
+            paintingId,
+          );
 
           // Create the folder for the images if it doesn't exist
           fs.mkdirSync(uploadPath, { recursive: true });
 
           cb(null, uploadPath);
         },
-        filename: (req, file, callback) => {
+        filename: (_, file, callback) => {
           // Decode the filename from latin1 to utf8, relevant for Cyrillic characters
           const buffer = Buffer.from(file.originalname, 'latin1');
           const decodedName = buffer.toString('utf8');
@@ -81,5 +87,11 @@ export class PaintingsController {
   @UseGuards(JwtAuthGuard)
   async getPaintings() {
     return this.paintingsService.getPaintings();
+  }
+
+  @Get(':paintingId')
+  @UseGuards(JwtAuthGuard)
+  async getPainting(@Param('paintingId') paintingId: string) {
+    return await this.paintingsService.getPainting(paintingId);
   }
 }
