@@ -14,6 +14,9 @@ export class CheckoutService {
   async createSession(paintingId: string) {
     const painting = await this.paintingsService.getPainting(paintingId);
     return this.stripe.checkout.sessions.create({
+      metadata: {
+        paintingId: painting.id,
+      },
       line_items: [
         {
           price_data: {
@@ -29,6 +32,25 @@ export class CheckoutService {
       mode: 'payment',
       success_url: this.configService.getOrThrow('STRIPE_SUCCESS_URL'),
       cancel_url: this.configService.getOrThrow('STRIPE_CANCEL_URL'),
+    });
+  }
+
+  async handleCheckoutWebhook(event: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (event.type !== 'checkout.session.completed') {
+      return;
+    }
+
+    const session = await this.stripe.checkout.sessions.retrieve(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+      event.data.object.id,
+    );
+
+    if (!session.metadata) {
+      return;
+    }
+    await this.paintingsService.update(session.metadata.paintingId, {
+      sold: true,
     });
   }
 }

@@ -3,6 +3,7 @@ import { CreatePaintingRequest } from './dto/create-painting.request';
 import { PrismaService } from '../prisma/prisma.service';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PaintingsService {
@@ -84,5 +85,14 @@ export class PaintingsService {
       console.error(error);
       throw new NotFoundException(`Painting ${paintingId} not found`);
     }
+  }
+
+  async update(paintingId: string, data: Prisma.PaintingUpdateInput) {
+    await this.prismaService.painting.update({
+      where: {
+        id: paintingId,
+      },
+      data,
+    });
   }
 }

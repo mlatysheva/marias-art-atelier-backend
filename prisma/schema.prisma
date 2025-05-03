@@ -29,4 +29,5 @@ model Painting {
   price       Int
   userId      String
   user        User     @relation(fields: [userId], references: [id])
+  sold        Boolean  @default(false)
 }

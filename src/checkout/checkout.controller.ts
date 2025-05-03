@@ -6,9 +6,15 @@ import { CheckoutService } from './checkout.service';
 @Controller('checkout')
 export class CheckoutController {
   constructor(private readonly checkoutService: CheckoutService) {}
+
   @Post('session')
   @UseGuards(JwtAuthGuard)
   async createSession(@Body() request: CreateSessionRequest) {
     return this.checkoutService.createSession(request.paintingId);
+  }
+
+  @Post('webhook')
+  async handleCheckoutWebhook(@Body() event: any) {
+    return await this.checkoutService.handleCheckoutWebhook(event);
   }
 }
