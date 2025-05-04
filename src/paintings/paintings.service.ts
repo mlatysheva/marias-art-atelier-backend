@@ -4,10 +4,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { Prisma } from '@prisma/client';
+import { PaintingsGateway } from './paintings.gateway';
 
 @Injectable()
 export class PaintingsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly paintingsGateway: PaintingsGateway,
+  ) {}
 
   async createPainting(data: CreatePaintingRequest, userId: string) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -20,12 +24,16 @@ export class PaintingsService {
       dimensions: [data.width, data.height],
       materials: [data.medium, data.base],
     };
-    return this.prismaService.painting.create({
+    const painting = await this.prismaService.painting.create({
       data: {
         ...prismaData,
         userId,
       },
     });
+
+    this.paintingsGateway.handlePaintingUpdated();
+
+    return painting;
   }
 
   async getPaintings(status?: string) {
@@ -100,5 +108,7 @@ export class PaintingsService {
       },
       data,
     });
+
+    this.paintingsGateway.handlePaintingUpdated();
   }
 }
