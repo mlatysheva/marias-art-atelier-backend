@@ -7,6 +7,7 @@ import {
   Param,
   ParseFilePipe,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -85,8 +86,8 @@ export class PaintingsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  async getPaintings() {
-    return this.paintingsService.getPaintings();
+  async getPaintings(@Query('status') status: string) {
+    return this.paintingsService.getPaintings(status);
   }
 
   @Get(':paintingId')

@@ -28,8 +28,14 @@ export class PaintingsService {
     });
   }
 
-  async getPaintings() {
-    const paintings = this.prismaService.painting.findMany();
+  async getPaintings(status?: string) {
+    const args: Prisma.PaintingFindManyArgs = {};
+    if (status === 'available') {
+      args.where = {
+        sold: false,
+      };
+    }
+    const paintings = this.prismaService.painting.findMany(args);
     return Promise.all(
       (await paintings).map(async (painting) => {
         // Get the array of image file names
