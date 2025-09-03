@@ -8,6 +8,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'node:path';
 import { CheckoutModule } from './checkout/checkout.module';
 import { HealthController } from './health.controller';
+import { DescriptionAiModule } from './openAi/descriptionAi.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { HealthController } from './health.controller';
     AuthModule,
     PaintingsModule,
     CheckoutModule,
+    DescriptionAiModule,
   ],
   controllers: [HealthController],
   providers: [],
