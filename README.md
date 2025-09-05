@@ -32,7 +32,7 @@ $ npm run start:dev
 $ stripe listen --forward-to http://localhost:3001/checkout/webhook
 ```
 
-### Running the app in more detail
+## Running the app in more detail
 
 After installing the dependencies with `npm install` and starting the app with `npm run start:dev`, your terminal should be showing successful logs:
 
@@ -70,3 +70,16 @@ Post request to Stripe events webhook:
 The `paintings` table in PG Admin:
 
 ![Paintings table in PG Admin](screenshots/pg_admin_paintings_table.png)
+
+Post request to `ai/generate-description` to automatically generate a description with Open AI based on tags provided:
+
+![Generate description with Open AI](screenshots/description_generation_with_openai.png)
+
+## Stack used
+- Node.js
+- NestJS
+- Stripe to provide payment functionality
+- Open AI API to automatically generate description based on tags
+- `bcrypt` library to encrypt passwords
+- `passport` library to provide authentication
+- `socket.io` library to provide websocket functionality

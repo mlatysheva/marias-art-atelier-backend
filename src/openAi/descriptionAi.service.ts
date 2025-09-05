@@ -12,7 +12,7 @@ export class DescriptionAiService {
   }
 
   async generateDescriptionFromTags(tags: string[]): Promise<string> {
-    const prompt = `You are an art expert. Generate a compelling, detailed description for a painting using the following tags: ${tags.join(", ")}`;
+    const prompt = `You are an art expert. Generate a compelling, detailed description for a painting using the following tags: ${tags.join(", ")}. The description should help selling the painting on websites like Etsy or eBay. Keep it under 200 words. Do not add a heading.`;
 
     const response = await this.client.chat.completions.create({
       model: "gpt-3.5-turbo",
