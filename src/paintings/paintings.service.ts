@@ -20,14 +20,16 @@ export class PaintingsService {
     // Format the incoming data to suit the Prisma schema
     const prismaData = {
       ...rest,
-      tags: [...data.tags.split(', ')], // convert the string containing tags separated by a comma into an array of strings
+      tags: [...data.tags.split(', ')], // Convert the string containing tags separated by a comma into an array of strings
       dimensions: [data.width, data.height],
       materials: [data.medium, data.base],
     };
     const painting = await this.prismaService.painting.create({
       data: {
         ...prismaData,
-        userId,
+        user: {
+        connect: { id: userId }, // Associate painting with the user who uploaded it
+      },
       },
     });
 
