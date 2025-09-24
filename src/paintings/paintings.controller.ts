@@ -6,7 +6,9 @@ import {
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
+  Patch,
   Post,
+  Delete,
   Query,
   UploadedFiles,
   UseGuards,
@@ -22,6 +24,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'node:path';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Prisma } from '@prisma/client';
 
 @Controller('paintings')
 export class PaintingsController {
@@ -94,5 +97,24 @@ export class PaintingsController {
   @UseGuards(JwtAuthGuard)
   async getPainting(@Param('paintingId') paintingId: string) {
     return await this.paintingsService.getPainting(paintingId);
+  }
+
+  @Delete(':paintingId')
+  @UseGuards(JwtAuthGuard)
+  async deletePainting(
+    @Param('paintingId') id: string,
+    @CurrentUser() user: TokenPayload,
+  ) {
+    return this.paintingsService.delete(id, user.userId);
+  }
+
+  @Patch(':paintingId')
+  @UseGuards(JwtAuthGuard)
+  async updatePainting(
+    @Param('paintingId') id: string,
+    @Body() body: Prisma.PaintingUpdateInput,
+    @CurrentUser() user: TokenPayload,
+  ) {
+    return this.paintingsService.update(id, body, user.userId);
   }
 }

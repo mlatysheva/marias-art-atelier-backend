@@ -51,6 +51,6 @@ export class CheckoutService {
     }
     await this.paintingsService.update(session.metadata.paintingId, {
       sold: true,
-    });
+    }, session.metadata.userId);
   }
 }

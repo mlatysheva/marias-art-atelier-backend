@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePaintingRequest } from './dto/create-painting.request';
 import { PrismaService } from '../prisma/prisma.service';
 import { promises as fs } from 'fs';
@@ -28,8 +28,8 @@ export class PaintingsService {
       data: {
         ...prismaData,
         user: {
-        connect: { id: userId }, // Associate painting with the user who uploaded it
-      },
+          connect: { id: userId }, // Associate painting with the user who uploaded it
+        },
       },
     });
 
@@ -103,7 +103,8 @@ export class PaintingsService {
     }
   }
 
-  async update(paintingId: string, data: Prisma.PaintingUpdateInput) {
+  async update(paintingId: string, data: Prisma.PaintingUpdateInput, userId: string) {
+    if (data.user !== userId) throw new ForbiddenException('Only the user who created the painting can update it');
     await this.prismaService.painting.update({
       where: {
         id: paintingId,
@@ -112,5 +113,13 @@ export class PaintingsService {
     });
 
     this.paintingsGateway.handlePaintingUpdated();
+  }
+
+  async delete(id: string, userId: string) {
+    const painting = await this.prismaService.painting.findUnique({ where: { id } });
+    if (!painting) throw new NotFoundException('Painting not found');
+    if (painting.userId !== userId) throw new ForbiddenException('Only the user who created the painting can delete it');
+
+    return this.prismaService.painting.delete({ where: { id } });
   }
 }
