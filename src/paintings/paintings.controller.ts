@@ -93,6 +93,12 @@ export class PaintingsController {
     return this.paintingsService.getPaintings(status);
   }
 
+  @Get('admin')
+  @UseGuards(JwtAuthGuard)
+  async getPaintingsOfLoggedUser(@CurrentUser() user: TokenPayload) {
+    return this.paintingsService.getPaintingsByUser(user.userId);
+  }
+
   @Get(':paintingId')
   @UseGuards(JwtAuthGuard)
   async getPainting(@Param('paintingId') paintingId: string) {

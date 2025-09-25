@@ -59,6 +59,23 @@ export class PaintingsService {
     );
   }
 
+  async getPaintingsByUser(userId: string) {
+    const paintings = this.prismaService.painting.findMany({
+      where: { userId },
+    });
+    return Promise.all(
+      (await paintings).map(async (painting) => {
+        // Get the array of image file names
+        const images = await this.getPaintingImages(painting.id);
+        return {
+          ...painting,
+          images,
+          imageExists: images.length > 0,
+        };
+      }),
+    );
+  }
+
   private async getPaintingImages(paintingId: string): Promise<string[]> {
     const folderPath = path.join(
       __dirname,
