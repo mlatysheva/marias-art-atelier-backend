@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -24,8 +23,27 @@ export class PaintingsGateway {
 
   handleConnection(client: Socket) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      this.authService.verifyToken(client.handshake.auth.Authentication.value);
+      const handshakeAuth = client.handshake.auth as Record<string, unknown>;
+      const authentication = handshakeAuth.Authentication;
+
+      let token: string | undefined;
+
+      if (typeof authentication === 'string') {
+        token = authentication;
+      } else if (
+        authentication &&
+        typeof authentication === 'object' &&
+        'value' in authentication &&
+        typeof (authentication as { value?: unknown }).value === 'string'
+      ) {
+        token = (authentication as { value: string }).value;
+      }
+
+      if (!token) {
+        throw new WsException('Unauthorized');
+      }
+
+      this.authService.verifyToken(token);
     } catch (error) {
       console.error('Unauthorized connection attempt', error);
       throw new WsException('Unauthorized');
