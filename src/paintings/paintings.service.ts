@@ -5,6 +5,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { Prisma } from '@prisma/client';
 import { PaintingsGateway } from './paintings.gateway';
+import { UpdatePaintingRequest } from './dto/update-painting.request';
 
 @Injectable()
 export class PaintingsService {
@@ -120,16 +121,46 @@ export class PaintingsService {
     }
   }
 
-  async update(paintingId: string, data: Prisma.PaintingUpdateInput, userId: string) {
-    if (data.user !== userId) throw new ForbiddenException('Only the user who created the painting can update it');
+  async updatePainting(
+    paintingId: string,
+    data: Partial<UpdatePaintingRequest>,
+    userId: string,
+  ) {
+    const painting = await this.prismaService.painting.findUnique({
+      where: { id: paintingId },
+    });
+
+    if (!painting) {
+      throw new NotFoundException('Painting not found');
+    }
+
+    if (painting.userId !== userId) {
+      throw new ForbiddenException(
+        'Only the user who created the painting can update it',
+      );
+    }
+
+    const { medium, base, height, width, tags, ...rest } = data;
+
+
     await this.prismaService.painting.update({
       where: {
         id: paintingId,
       },
-      data,
+
+      data: {
+        ...rest,
+        tags: [...tags?.split(', ') ?? []], // Convert the string containing tags separated by a comma into an array of strings
+        dimensions: [width ?? 0, height ?? 0],
+        materials: [medium ?? '', base ?? ''],
+        user: {
+          connect: { id: userId }, // Associate painting with the user who uploaded it
+        },
+      },
     });
 
     this.paintingsGateway.handlePaintingUpdated();
+    return painting;
   }
 
   async delete(id: string, userId: string) {

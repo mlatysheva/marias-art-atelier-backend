@@ -25,6 +25,7 @@ import { extname } from 'node:path';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Prisma } from '@prisma/client';
+import { UpdatePaintingRequest } from './dto/update-painting.request';
 
 @Controller('paintings')
 export class PaintingsController {
@@ -118,9 +119,9 @@ export class PaintingsController {
   @UseGuards(JwtAuthGuard)
   async updatePainting(
     @Param('paintingId') id: string,
-    @Body() body: Prisma.PaintingUpdateInput,
+    @Body() body: Partial<UpdatePaintingRequest>,
     @CurrentUser() user: TokenPayload,
   ) {
-    return this.paintingsService.update(id, body, user.userId);
+    return this.paintingsService.updatePainting(id, body, user.userId);
   }
 }
