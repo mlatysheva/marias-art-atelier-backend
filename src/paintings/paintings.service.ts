@@ -140,7 +140,7 @@ export class PaintingsService {
       );
     }
 
-    const { medium, base, height, width, tags, ...rest } = data;
+    const { medium, base, height, width, price, tags, year, ...rest } = data;
 
 
     await this.prismaService.painting.update({
@@ -150,9 +150,11 @@ export class PaintingsService {
 
       data: {
         ...rest,
-        tags: [...tags?.split(', ') ?? []], // Convert the string containing tags separated by a comma into an array of strings
-        dimensions: [width ?? 0, height ?? 0],
+        tags: [...tags?.split(', ') ?? []], 
+        dimensions: [Number(width) ?? 0, Number(height) ?? 0],
         materials: [medium ?? '', base ?? ''],
+        year: Number(year),
+        price: Number(year),
         user: {
           connect: { id: userId }, // Associate painting with the user who uploaded it
         },

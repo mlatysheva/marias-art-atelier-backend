@@ -24,7 +24,6 @@ import { diskStorage } from 'multer';
 import { extname } from 'node:path';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Prisma } from '@prisma/client';
 import { UpdatePaintingRequest } from './dto/update-painting.request';
 
 @Controller('paintings')
