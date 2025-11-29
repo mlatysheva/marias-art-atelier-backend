@@ -1,0 +1,340 @@
+openapi: 3.1.0
+info:
+  title: Maria's Atelier API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: Authentication
+  schemas:
+    TokenPayload:
+      type: object
+      properties:
+        userId:
+          type: string
+      required: [userId]
+    CreateUserRequest:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        username: { type: string }
+        email: { type: string, format: email }
+        password: { type: string }
+      required: [firstName, lastName, username, email, password]
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+    LoginRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+      required: [email, password]
+    Painting:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        artist: { type: string }
+        description: { type: string }
+        tags: { type: array, items: { type: string } }
+        year: { type: integer }
+        price: { type: integer }
+        dimensions: { type: array, items: { type: integer } }
+        materials: { type: array, items: { type: string } }
+        sold: { type: boolean }
+        userId: { type: string }
+    CreatePaintingRequest:
+      type: object
+      properties:
+        title: { type: string }
+        artist: { type: string }
+        description: { type: string }
+        tags: { type: string }
+        year: { type: integer }
+        price: { type: integer }
+        width: { type: integer }
+        height: { type: integer }
+        medium: { type: string }
+        base: { type: string }
+      required: [title, artist, description, tags, year, price, width, height, medium, base]
+    UpdatePaintingRequest:
+      type: object
+      properties:
+        title: { type: string }
+        artist: { type: string }
+        description: { type: string }
+        tags: { type: string }
+        year: { type: integer }
+        price: { type: integer }
+        width: { type: integer }
+        height: { type: integer }
+        medium: { type: string }
+        base: { type: string }
+        sold: { type: boolean }
+    CreateSessionRequest:
+      type: object
+      properties:
+        paintingId: { type: string }
+      required: [paintingId]
+    GenerateDescriptionRequest:
+      type: object
+      properties:
+        tags:
+          type: array
+          items: { type: string }
+      required: [tags]
+paths:
+  /users:
+    post:
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/me:
+    get:
+      summary: Get current user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user token payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPayload'
+        '401':
+          description: Unauthorized
+  /auth/login:
+    post:
+      summary: Login with email/password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Auth cookie set; returns token payload
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Authentication cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPayload'
+        '401':
+          description: Invalid credentials
+  /paintings:
+    get:
+      summary: List paintings
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [available, sold] }
+      responses:
+        '200':
+          description: Paintings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Painting'
+        '401':
+          description: Unauthorized
+    post:
+      summary: Create painting
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaintingRequest'
+      responses:
+        '201':
+          description: Painting created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Painting'
+        '401':
+          description: Unauthorized
+  /paintings/admin:
+    get:
+      summary: List paintings for logged-in user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Paintings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Painting'
+        '401':
+          description: Unauthorized
+  /paintings/{paintingId}:
+    get:
+      summary: Get painting by id
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: paintingId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Painting
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Painting'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found
+    patch:
+      summary: Update painting
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: paintingId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePaintingRequest'
+      responses:
+        '200':
+          description: Updated painting
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Painting'
+        '401':
+          description: Unauthorized
+    delete:
+      summary: Delete painting
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: paintingId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          description: Unauthorized
+  /paintings/{paintingId}/images:
+    post:
+      summary: Upload painting images
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: paintingId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Uploaded
+        '401':
+          description: Unauthorized
+  /checkout/session:
+    post:
+      summary: Create Stripe checkout session
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+      responses:
+        '200':
+          description: Stripe session
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          description: Unauthorized
+  /checkout/webhook:
+    post:
+      summary: Stripe webhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Handled
+  /ai/generate-description:
+    post:
+      summary: Generate description from tags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateDescriptionRequest'
+      responses:
+        '200':
+          description: Generated description
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  description: { type: string }
