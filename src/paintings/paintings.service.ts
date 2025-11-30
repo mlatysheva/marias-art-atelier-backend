@@ -78,10 +78,12 @@ export class PaintingsService {
   }
 
   private async getPaintingImages(paintingId: string): Promise<string[]> {
+    // Resolve against the project root so it works in both dev (ts-node) and prod (dist)
     const folderPath = path.join(
-      __dirname,
-      '../..',
-      'public/images/paintings',
+      process.cwd(),
+      'public',
+      'images',
+      'paintings',
       paintingId,
     );
 
