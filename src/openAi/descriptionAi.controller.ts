@@ -11,7 +11,8 @@ export class DescriptionAiController {
       return { description: '' };
     }
 
-    const description = await this.descriptionAiService.generateDescriptionFromTags(tags);
+    const description =
+      await this.descriptionAiService.generateDescriptionFromTags(tags);
     return { description };
   }
 }

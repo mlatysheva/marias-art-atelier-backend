@@ -49,8 +49,12 @@ export class CheckoutService {
     if (!session.metadata) {
       return;
     }
-    await this.paintingsService.updatePainting(session.metadata.paintingId, {
-      sold: true,
-    }, session.metadata.userId);
+    await this.paintingsService.updatePainting(
+      session.metadata.paintingId,
+      {
+        sold: true,
+      },
+      session.metadata.userId,
+    );
   }
 }

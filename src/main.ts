@@ -11,7 +11,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.enableCors({
     origin: 'http://localhost:3000', // Next.js frontend URL
-    credentials: true,               // allow cookies/auth headers
+    credentials: true, // allow cookies/auth headers
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization',
   });

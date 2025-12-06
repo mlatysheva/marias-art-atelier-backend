@@ -36,7 +36,7 @@ import { DescriptionAiModule } from './openAi/descriptionAi.module';
     ConfigModule.forRoot(),
     ServeStaticModule.forRoot({
       // Use project root so it works in both ts-node (src) and compiled (dist) runs
-      rootPath: join(process.cwd(), 'public', ),
+      rootPath: join(process.cwd(), 'public'),
     }),
     UsersModule,
     AuthModule,
