@@ -48,4 +48,7 @@ export class UpdatePaintingRequest {
   @IsBoolean()
   @IsOptional()
   sold: boolean;
+
+  @IsOptional()
+  imagesToKeep?: string[];
 }

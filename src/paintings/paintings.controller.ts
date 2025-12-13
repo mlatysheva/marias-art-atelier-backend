@@ -87,6 +87,64 @@ export class PaintingsController {
     files: Express.Multer.File[],
   ) {}
 
+  /**
+   * Endpoint to replace images of a painting, including deleting and adding new ones.
+   * @param paintingId
+   * @param newFiles
+   * @param imagesToKeep
+   * @returns
+   */
+  @Patch(':paintingId/images')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FilesInterceptor('image', 10, {
+      storage: diskStorage({
+        destination: (req, _, cb) => {
+          const paintingId = req.params.paintingId;
+          const uploadPath = path.join(
+            'public',
+            'images',
+            'paintings',
+            paintingId,
+          );
+
+          // Create the folder for the images if it doesn't exist
+          fs.mkdirSync(uploadPath, { recursive: true });
+
+          cb(null, uploadPath);
+        },
+        filename: (_, file, callback) => {
+          // Decode the filename from latin1 to utf8, relevant for Cyrillic characters
+          const buffer = Buffer.from(file.originalname, 'latin1');
+          const decodedName = buffer.toString('utf8');
+
+          const ext = extname(decodedName);
+          const name = decodedName.replace(ext, '');
+
+          const finalName = `${name}${ext}`;
+
+          callback(null, finalName);
+        },
+      }),
+    }),
+  )
+  async replacePaintingImages(
+    @Param('paintingId') paintingId: string,
+    @UploadedFiles() newFiles: Express.Multer.File[],
+    @Body('imagesToKeep') imagesToKeep?: string | string[],
+  ) {
+    const keepList = Array.isArray(imagesToKeep)
+      ? imagesToKeep
+      : imagesToKeep
+        ? [imagesToKeep]
+        : [];
+    return await this.paintingsService.replaceImages(
+      paintingId,
+      newFiles,
+      keepList,
+    );
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard)
   async getPaintings(@Query('status') status: string) {

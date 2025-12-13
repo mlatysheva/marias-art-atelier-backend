@@ -107,6 +107,35 @@ export class PaintingsService {
     }
   }
 
+  async replaceImages(
+    paintingId: string,
+    newFiles: Express.Multer.File[],
+    imagesToKeep: string[] = [],
+  ) {
+    const dir = path.join(
+      process.cwd(),
+      'public',
+      'images',
+      'paintings',
+      paintingId,
+    );
+    try {
+      await fs.mkdir(dir, { recursive: true });
+      const existing = await fs.readdir(dir).catch(() => []);
+      const toDelete = existing.filter((f) => !imagesToKeep.includes(f));
+      await Promise.all(
+        toDelete.map((f) => fs.unlink(path.join(dir, f)).catch(() => {})),
+      );
+      return {
+        kept: imagesToKeep.length,
+        deleted: toDelete.length,
+        uploaded: newFiles.length,
+      };
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   async getPainting(paintingId: string) {
     try {
       const painting = await this.prismaService.painting.findUniqueOrThrow({
@@ -146,7 +175,17 @@ export class PaintingsService {
       );
     }
 
-    const { medium, base, height, width, price, tags, year, ...rest } = data;
+    const {
+      medium,
+      base,
+      height,
+      width,
+      price,
+      imagesToKeep,
+      tags,
+      year,
+      ...rest
+    } = data;
 
     await this.prismaService.painting.update({
       where: {
@@ -156,7 +195,7 @@ export class PaintingsService {
       data: {
         ...rest,
         tags: [...(tags?.split(', ') ?? [])],
-        dimensions: [Number(width) ?? 0, Number(height) ?? 0],
+        dimensions: [Number(width ?? 0), Number(height ?? 0)],
         materials: [medium ?? '', base ?? ''],
         year: Number(year),
         price: Number(year),
