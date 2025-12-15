@@ -209,6 +209,30 @@ export class PaintingsService {
     return painting;
   }
 
+  async deleteImages(paintingId: string) {
+    const dir = path.join(
+      process.cwd(),
+      'public',
+      'images',
+      'paintings',
+      paintingId,
+    );
+    try {
+      const folderExists = await fs
+        .stat(dir)
+        .then(() => true)
+        .catch(() => false);
+      if (!folderExists) {
+        return false;
+      }
+      // Remove the painting images folder and its content
+      await fs.rm(dir, { recursive: true, force: true });
+      return true;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   async delete(id: string, userId: string) {
     const painting = await this.prismaService.painting.findUnique({
       where: { id },
@@ -219,6 +243,7 @@ export class PaintingsService {
         'Only the user who created the painting can delete it',
       );
 
+    await this.deleteImages(id);
     return this.prismaService.painting.delete({ where: { id } });
   }
 }
