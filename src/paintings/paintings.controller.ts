@@ -50,7 +50,7 @@ export class PaintingsController {
             'public',
             'images',
             'paintings',
-            paintingId,
+            paintingId as string,
           );
 
           // Create the folder for the images if it doesn't exist
@@ -105,7 +105,7 @@ export class PaintingsController {
             'public',
             'images',
             'paintings',
-            paintingId,
+            paintingId as string,
           );
 
           // Create the folder for the images if it doesn't exist
