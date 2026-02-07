@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateSessionRequest } from './dto/create-session.request';
 import { CheckoutService } from './checkout.service';
@@ -14,7 +14,10 @@ export class CheckoutController {
   }
 
   @Post('webhook')
-  async handleCheckoutWebhook(@Body() event: any) {
-    return await this.checkoutService.handleCheckoutWebhook(event);
+  async handleCheckoutWebhook(
+    @Body() body: Buffer,
+    @Headers('stripe-signature') signature?: string,
+  ) {
+    return await this.checkoutService.handleCheckoutWebhook(body, signature);
   }
 }

@@ -198,7 +198,7 @@ export class PaintingsService {
         dimensions: [Number(width ?? 0), Number(height ?? 0)],
         materials: [medium ?? '', base ?? ''],
         year: Number(year),
-        price: Number(year),
+        price: Number(price),
         user: {
           connect: { id: userId }, // Associate painting with the user who uploaded it
         },
@@ -231,6 +231,15 @@ export class PaintingsService {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  async markPaintingSold(paintingId: string) {
+    const painting = await this.prismaService.painting.update({
+      where: { id: paintingId },
+      data: { sold: true },
+    });
+    this.paintingsGateway.handlePaintingUpdated();
+    return painting;
   }
 
   async delete(id: string, userId: string) {

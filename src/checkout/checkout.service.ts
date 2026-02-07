@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import { PaintingsService } from '../paintings/paintings.service';
 import { ConfigService } from '@nestjs/config';
@@ -35,26 +35,27 @@ export class CheckoutService {
     });
   }
 
-  async handleCheckoutWebhook(event: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  async handleCheckoutWebhook(rawBody: Buffer, signature?: string) {
+    if (!signature) {
+      throw new BadRequestException('Missing Stripe signature');
+    }
+
+    const event = this.stripe.webhooks.constructEvent(
+      rawBody,
+      signature,
+      this.configService.getOrThrow('STRIPE_WEBHOOK_SECRET'),
+    );
+
     if (event.type !== 'checkout.session.completed') {
       return;
     }
 
-    const session = await this.stripe.checkout.sessions.retrieve(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-      event.data.object.id,
-    );
-
-    if (!session.metadata) {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const paintingId = session.metadata?.paintingId;
+    if (!paintingId) {
       return;
     }
-    await this.paintingsService.updatePainting(
-      session.metadata.paintingId,
-      {
-        sold: true,
-      },
-      session.metadata.userId,
-    );
+
+    await this.paintingsService.markPaintingSold(paintingId);
   }
 }
