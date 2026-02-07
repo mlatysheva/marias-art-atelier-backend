@@ -50,7 +50,7 @@ export class CheckoutService {
       return;
     }
 
-    const session = event.data.object as Stripe.Checkout.Session;
+    const session = event.data.object;
     const paintingId = session.metadata?.paintingId;
     if (!paintingId) {
       return;
